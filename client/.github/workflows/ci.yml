@@ -1,0 +1,66 @@
+name: example-basic
+on: [push]
+env:
+  DATABASE_URL: postgres://postgres:now3ef239vlkn@localhost:5432/postgres
+  SESSION_SECRET: werviu239823
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Cache node modules
+        uses: actions/cache@v2
+        env:
+          cache-name: cache-node-modules
+        with:
+          # npm cache files are stored in `~/.npm` on Linux/macOS
+          path: ~/.npm
+          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-build-${{ env.cache-name }}-
+            ${{ runner.os }}-build-
+            ${{ runner.os }}-
+
+      - name: Spawn database
+        run: docker run -d -p 5432:5432 -e POSTGRES_DB=postgres -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=now3ef239vlkn postgres
+
+      - name: Install server dependencies
+        working-directory: server
+        run: npm install
+
+      - name: Seed database
+        working-directory: server
+        run: npm run seed
+
+      - name: Start server in the background
+        working-directory: server
+        run: npm run dev &
+
+      - name: Install client dependencies
+        working-directory: client
+        run: npm install
+
+      - name: Start frontend in the background
+        working-directory: client
+        env:
+          HOST: localhost
+          PORT: 3000
+        run: npm run start &
+
+      - name: Cypress
+        working-directory: client
+        run: yarn cypress run
+
+      - name: Save screenshots
+        uses: actions/upload-artifact@v2
+        with:
+          name: cypress-screenshots
+          path: client/cypress/screenshots
+
+      - name: Save videos
+        uses: actions/upload-artifact@v2
+        with:
+          name: cypress-videos
+          path: client/cypress/videos
