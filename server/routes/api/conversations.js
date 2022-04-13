@@ -1,10 +1,11 @@
 const router = require("express").Router();
-const { User, Conversation, Message } = require("../../db/models");
+const { User, Conversation, Message, ReadStatus } = require("../../db/models");
 const { Op } = require("sequelize");
 const onlineUsers = require("../../onlineUsers");
 
 // get all conversations for a user, include latest message text for preview, and all messages
 // include other user model so we have info on username/profile pic (don't include current user info)
+// include unread message number for each conversation
 router.get("/", async (req, res, next) => {
   try {
     if (!req.user) {
@@ -50,6 +51,16 @@ router.get("/", async (req, res, next) => {
     for (let i = 0; i < conversations.length; i++) {
       const convo = conversations[i];
       const convoJSON = convo.toJSON();
+
+      // set a property "unreadMessagesCount" for frontend to show the unread message number
+      const { count } = await ReadStatus.findAndCountAll({
+        where: {
+          conversationId: convo.id,
+          messageRead: false,
+          receiverId: userId,
+        },
+      });
+      convoJSON.unreadMessageCount = count;
 
       // set a property "otherUser" so that frontend will have easier access
       if (convoJSON.user1) {
