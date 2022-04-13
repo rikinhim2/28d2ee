@@ -2,6 +2,7 @@ const db = require("./db");
 const { User } = require("./models");
 const Conversation = require("./models/conversation");
 const Message = require("./models/message");
+const ReadStatus = require("./models/readstatus");
 
 async function seed() {
   await db.sync({ force: true });
@@ -28,22 +29,41 @@ async function seed() {
     user2Id: santiago.id,
   });
 
-  await Message.create({
+  let msg = await Message.create({
     conversationId: santaigoConvo.id,
     senderId: santiago.id,
     text: "Where are you from?",
   });
-  await Message.create({
+  await ReadStatus.create({
+    conversationId: santaigoConvo.id,
+    messageId: msg.id,
+    receiverId: thomas.id,
+    messageRead: false,
+  });
+
+  msg = await Message.create({
     conversationId: santaigoConvo.id,
     senderId: thomas.id,
     text: "I'm from New York",
   });
-  await Message.create({
+  await ReadStatus.create({
+    conversationId: santaigoConvo.id,
+    messageId: msg.id,
+    receiverId: santiago.id,
+    messageRead: false,
+  });
+
+  msg = await Message.create({
     conversationId: santaigoConvo.id,
     senderId: santiago.id,
     text: "Share photo of your city, please",
   });
-
+  await ReadStatus.create({
+    conversationId: santaigoConvo.id,
+    messageId: msg.id,
+    receiverId: thomas.id,
+    messageRead: false,
+  });
   const chiumbo = await User.create({
     username: "chiumbo",
     email: "chiumbo@email.com",
@@ -55,10 +75,16 @@ async function seed() {
     user1Id: chiumbo.id,
     user2Id: thomas.id,
   });
-  await Message.create({
+  msg = await Message.create({
     conversationId: chiumboConvo.id,
     senderId: chiumbo.id,
     text: "Sure! What time?",
+  });
+  await ReadStatus.create({
+    conversationId: chiumboConvo.id,
+    messageId: msg.id,
+    receiverId: thomas.id,
+    messageRead: false,
   });
 
   const hualing = await User.create({
@@ -74,17 +100,29 @@ async function seed() {
   });
 
   for (let i = 0; i < 11; i++) {
-    await Message.create({
+    msg = await Message.create({
       conversationId: hualingConvo.id,
       senderId: hualing.id,
       text: "a test message",
     });
+    await ReadStatus.create({
+      conversationId: hualingConvo.id,
+      messageId: msg.id,
+      receiverId: thomas.id,
+      messageRead: false,
+    });
   }
 
-  await Message.create({
+  msg = await Message.create({
     conversationId: hualingConvo.id,
     senderId: hualing.id,
     text: "😂 😂 😂",
+  });
+  await ReadStatus.create({
+    conversationId: hualingConvo.id,
+    messageId: msg.id,
+    receiverId: thomas.id,
+    messageRead: false,
   });
 
   const otherUsers = await Promise.all([
