@@ -1,5 +1,5 @@
 const router = require("express").Router();
-const { Conversation, Message } = require("../../db/models");
+const { Conversation, Message, ReadStatus } = require("../../db/models");
 const onlineUsers = require("../../onlineUsers");
 
 // expects {recipientId, text, conversationId } in body (conversationId will be null if no conversation exists yet)
@@ -14,6 +14,14 @@ router.post("/", async (req, res, next) => {
     // if we already know conversation id, we can save time and just add it to message and return
     if (conversationId) {
       const message = await Message.create({ senderId, text, conversationId });
+      // for every new message for a receiver, there is one readStatus record created
+      await ReadStatus.create({
+        conversationId: conversationId,
+        messageId: message.id,
+        receiverId: recipientId,
+        messageRead: false,
+      });
+
       return res.json({ message, sender });
     }
     // if we don't have conversation id, find a conversation to make sure it doesn't already exist
@@ -36,6 +44,12 @@ router.post("/", async (req, res, next) => {
       senderId,
       text,
       conversationId: conversation.id,
+    });
+    await ReadStatus.create({
+      conversationId: conversation.id,
+      messageId: message.id,
+      receiverId: recipientId,
+      messageRead: false,
     });
     res.json({ message, sender });
   } catch (error) {
