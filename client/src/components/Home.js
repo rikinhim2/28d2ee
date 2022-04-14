@@ -97,8 +97,12 @@ const Home = ({ user, logout }) => {
 
   const addMessageToConversation = useCallback(
     (data) => {
+      const { message, recipientId, sender = null } = data;
+      // since the message is broadcast, no one should proceed if they are not sender nor receiver
+      if (user.id !== message.senderId && user.id !== recipientId) {  
+        return;
+      }
       // if sender isn't null, that means the message needs to be put in a brand new convo
-      const { message, sender = null } = data;
       if (sender !== null) {
         const newConvo = {
           id: message.conversationId,
@@ -140,7 +144,7 @@ const Home = ({ user, logout }) => {
         setConversations(newConversations);
       }
     },
-    [setConversations, conversations, activeConversation]
+    [setConversations, conversations, activeConversation, user.id]
   );
 
   const setActiveChat = async (username, conversationId) => {
