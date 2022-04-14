@@ -54,9 +54,12 @@ const ChatContent = ({ conversation }) => {
           {latestMessageText}
         </Typography>
       </Box>
-      <Box>
-        <Card className={classes.unreadMessages}>{unreadMessageCount}</Card>
-      </Box>
+      {unreadMessageCount && unreadMessageCount > 0 ?
+        ( <Box>
+            <Card className={classes.unreadMessages}>{unreadMessageCount}</Card>
+          </Box>
+        ) : null
+      }
     </Box>
   );
 };
