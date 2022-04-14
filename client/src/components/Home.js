@@ -104,15 +104,34 @@ const Home = ({ user, logout }) => {
           id: message.conversationId,
           otherUser: sender,
           messages: [message],
+          unreadMessageCount: 0,
         };
         newConvo.latestMessageText = message.text;
+
+        // check if the conversation is active, if yes, 
+        // request server to set read status to true, keep the unreadMessageCount (0) unchanged
+        if (sender.username === activeConversation) {
+          axios.put('/api/readstatus', {conversationId: message.conversationId});
+        } else {
+          // if not, add the unreadMessageCount +1
+          newConvo.unreadMessageCount +=  1;
+        }
         setConversations((prev) => [newConvo, ...prev]);
-      } else {
-          const newConversations = conversations.map((convo) => {
+      } else {  // existing conversation
+        const newConversations = conversations.map((convo) => {
           if (convo.id === message.conversationId) {
             const convoCopy = { ...convo };
             convoCopy.messages = [...convo.messages, message];
             convoCopy.latestMessageText = message.text;
+
+            // check if the conversation is active, if yes, 
+            // request server to set read status to true, keep the unreadMessageCount (0) unchanged
+            if (convoCopy.otherUser.username === activeConversation) {
+              axios.put('/api/readstatus', {conversationId: convoCopy.id});
+            } else {
+              // if not, add the unreadMessageCount +1
+              convoCopy.unreadMessageCount += 1;
+            }
             return convoCopy;
           } else {
             return convo;
@@ -121,10 +140,27 @@ const Home = ({ user, logout }) => {
         setConversations(newConversations);
       }
     },
-    [setConversations, conversations]
+    [setConversations, conversations, activeConversation]
   );
 
-  const setActiveChat = (username) => {
+  const setActiveChat = async (username, conversationId) => {
+    // check if the conversation is existing one, then reset the read to 0
+    // if there is no conversationId, the convo is a fake one
+    if (conversationId) {
+      await axios.put('/api/readstatus', {conversationId});
+      // change the unreadMessageCount to 0
+      const newConversations = conversations.map((convo) => {
+        if (convo.id === conversationId) {
+          const convoCopy = { ...convo };
+          convoCopy.messages = [...convo.messages];
+          convoCopy.unreadMessageCount = 0;
+          return convoCopy;
+        } else {
+          return convo;
+        }
+      });
+      setConversations(newConversations);
+    }
     setActiveConversation(username);
   };
 

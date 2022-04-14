@@ -1,5 +1,5 @@
 import React from "react";
-import { Box, Typography } from "@material-ui/core";
+import { Box, Typography, Card } from "@material-ui/core";
 import { makeStyles } from "@material-ui/core/styles";
 
 const useStyles = makeStyles((theme) => ({
@@ -7,7 +7,9 @@ const useStyles = makeStyles((theme) => ({
     display: "flex",
     justifyContent: "space-between",
     marginLeft: 20,
+    marginRight: 20,
     flexGrow: 1,
+    alignItems: "center",
   },
   username: {
     fontWeight: "bold",
@@ -18,12 +20,28 @@ const useStyles = makeStyles((theme) => ({
     color: "#9CADC8",
     letterSpacing: -0.17,
   },
+  unreadMessages: {
+    display: "flex",
+    boxShadow: "none",
+    fontSize: 10,
+    fontWeight: "bold",
+    height: 20,
+    minWidth: 20,
+    paddingLeft: 7,
+    paddingRight: 7,
+    alignItems: "center",
+    justifyContent: "center",
+    letterSpacing: -0.17,
+    color: "#FFFFFF",
+    background: "#3f92ff",
+    borderRadius: 10,
+  },
 }));
 
 const ChatContent = ({ conversation }) => {
   const classes = useStyles();
 
-  const { otherUser } = conversation;
+  const { otherUser, unreadMessageCount } = conversation;
   const latestMessageText = conversation.id && conversation.latestMessageText;
 
   return (
@@ -35,6 +53,9 @@ const ChatContent = ({ conversation }) => {
         <Typography className={classes.previewText}>
           {latestMessageText}
         </Typography>
+      </Box>
+      <Box>
+        <Card className={classes.unreadMessages}>{unreadMessageCount}</Card>
       </Box>
     </Box>
   );
