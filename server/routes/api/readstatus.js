@@ -23,7 +23,7 @@ router.put("/", async (req, res, next) => {
     );
     res.json({ update })
   } catch (error) {
-    next();
+    next(error);
   }
 });
 
