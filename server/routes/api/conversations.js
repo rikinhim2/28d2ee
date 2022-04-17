@@ -6,6 +6,7 @@ const onlineUsers = require("../../onlineUsers");
 // get all conversations for a user, include latest message text for preview, and all messages
 // include other user model so we have info on username/profile pic (don't include current user info)
 // include unread message number for each conversation
+// include other users last read messsage id
 router.get("/", async (req, res, next) => {
   try {
     if (!req.user) {
@@ -70,6 +71,17 @@ router.get("/", async (req, res, next) => {
         convoJSON.otherUser = convoJSON.user2;
         delete convoJSON.user2;
       }
+
+      const { messageId } = await ReadStatus.findOne({
+        where: {
+          conversationId: convo.id,
+          messageRead: true,
+          receiverId: convoJSON.otherUser.id,
+        },
+        attributes: ["messageId"],
+        order: [["createdAt", "DESC"]],
+      }) || {};
+      convoJSON.otherLastReadMessageId = messageId;
 
       // set property for online status of the other user
       if (onlineUsers.includes(convoJSON.otherUser.id)) {
