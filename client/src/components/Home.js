@@ -77,6 +77,37 @@ const Home = ({ user, logout }) => {
     }
   };
 
+  const emitUpdate = useCallback((conversationId, receiverId) => {
+    socket.emit('read-last-message', {
+      receiverId,
+      senderId: user.id,
+      convoId: conversationId,
+    });
+  }, [socket, user.id]);
+  
+  const updateOthersLastReadMessage = useCallback(
+    async ({ convoId, senderId, receiverId }) => {
+      if (user.id !== receiverId) {
+        return;
+      }
+
+      const { data } = await axios.get('/api/readstatus/last-message-read', { params: { convoId, otherUserId: senderId }});
+      const newConversations = conversations.map((convo) => {
+        if (convo.id === convoId) {
+          const convoCopy = { ...convo };
+          convoCopy.messages = [...convo.messages];
+          // set this message id to the conversation
+          convoCopy.otherLastReadMessageId = data.messageId;
+          return convoCopy;
+        } else {
+          return convo;
+        }
+      });
+      setConversations(newConversations);
+
+    }, [user.id, conversations]
+  );
+
   const addNewConvo = useCallback(
     (recipientId, message) => {
       const newConversations = conversations.map((convo) => {
@@ -116,6 +147,10 @@ const Home = ({ user, logout }) => {
         // request server to set read status to true, keep the unreadMessageCount (0) unchanged
         if (sender.username === activeConversation) {
           axios.put('/api/readstatus', {conversationId: message.conversationId});
+          // tell the other user to update my lastest read message
+          if (sender.id !== user.id) {
+            emitUpdate(message.conversationId, sender.id);
+          }
         } else {
           // if not, add the unreadMessageCount +1
           newConvo.unreadMessageCount +=  1;
@@ -132,6 +167,10 @@ const Home = ({ user, logout }) => {
             // request server to set read status to true, keep the unreadMessageCount (0) unchanged
             if (convoCopy.otherUser.username === activeConversation) {
               axios.put('/api/readstatus', {conversationId: convoCopy.id});
+              // tell the other user to update my lastest read message
+              if (message.senderId !== user.id) {
+                emitUpdate(convoCopy.id, convoCopy.otherUser.id);
+              }
             } else {
               // if not, add the unreadMessageCount +1
               convoCopy.unreadMessageCount += 1;
@@ -143,26 +182,28 @@ const Home = ({ user, logout }) => {
         });
         setConversations(newConversations);
       }
-    },
-    [setConversations, conversations, activeConversation, user.id]
-  );
+    }, [setConversations, conversations, activeConversation, emitUpdate, user.id]);
 
-  const setActiveChat = async (username, conversationId) => {
+  const setActiveChat = async (username, userId, conversationId) => {
     // check if the conversation is existing one, then reset the read to 0
     // if there is no conversationId, the convo is a fake one
     if (conversationId) {
       await axios.put('/api/readstatus', {conversationId});
+      const { data } = await axios.get('/api/readstatus/last-message-read', { params: { convoId: conversationId, otherUserId: userId}});
+      emitUpdate(conversationId, userId);
       // change the unreadMessageCount to 0
       const newConversations = conversations.map((convo) => {
         if (convo.id === conversationId) {
           const convoCopy = { ...convo };
           convoCopy.messages = [...convo.messages];
           convoCopy.unreadMessageCount = 0;
+          convoCopy.otherLastReadMessageId = data.messageId;
           return convoCopy;
         } else {
           return convo;
         }
       });
+      
       setConversations(newConversations);
     }
     setActiveConversation(username);
