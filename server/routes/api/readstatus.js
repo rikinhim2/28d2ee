@@ -36,7 +36,6 @@ router.get("/last-message-read", async(req, res, next) => {
     const { messageId } = await ReadStatus.findOne({
       where: {
         conversationId: convoId,
-        messageRead: true,
         receiverId: otherUserId,
       },
       attributes: ["messageId"],
