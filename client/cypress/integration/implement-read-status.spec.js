@@ -5,6 +5,11 @@ const thomas = {
   password: "123456",
 };
 
+const santiago = {
+  username: "santiago",
+  password: "123456",
+};
+
 const hualing = {
   username: "hualing",
   password: "123456",
@@ -64,5 +69,22 @@ describe("Implement read status", () => {
     cy.logout();
     cy.login(thomas.username, thomas.password);
     cy.contains("cheng").parent().parent().contains("3");
+  });
+
+  it("contains an avatar at the last message of chat box", () => {
+    cy.login(santiago.username, santiago.password);
+    cy.get("input[name=search]").type("thomas");
+    cy.contains("thomas").click();
+    cy.get("input[name=text]").type("Hello from santiago{enter}");
+
+    cy.logout();
+    cy.login(thomas.username, thomas.password);
+    cy.contains("santiago").click();
+
+    cy.logout();
+    cy.login(santiago.username, santiago.password);
+    cy.contains("thomas").click();
+
+    cy.contains("Hello from santiago").parent().parent().parent().find('img').should('have.attr', 'alt', 'thomas');
   });
 });
