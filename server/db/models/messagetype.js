@@ -1,11 +1,11 @@
 const Sequelize = require("sequelize");
 const db = require("../db");
 
-const Message = db.define("message", {
-  content: {
+const MessageType = db.define("messagetype", {
+  description: {
     type: Sequelize.STRING,
     allowNull: false,
   },
 });
 
-module.exports = Message;
+module.exports = MessageType;
