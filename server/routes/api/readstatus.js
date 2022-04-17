@@ -27,4 +27,26 @@ router.put("/", async (req, res, next) => {
   }
 });
 
+router.get("/last-message-read", async(req, res, next) => {
+  try {
+    if (!req.user) {
+      return res.sendStatus(401);
+    }
+    const { convoId, otherUserId } = req.query;
+    const { messageId } = await ReadStatus.findOne({
+      where: {
+        conversationId: convoId,
+        messageRead: true,
+        receiverId: otherUserId,
+      },
+      attributes: ["messageId"],
+      order: [["createdAt", "DESC"]],
+    }) || {};
+
+    res.json({ messageId });
+  } catch (error) {
+    next(error);
+  }
+});
+
 module.exports = router;
