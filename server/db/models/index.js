@@ -12,9 +12,6 @@ Conversation.belongsToMany(User, {through: "Conversation_Host"});
 User.hasMany(Message, {foreignKey: "senderId"});
 Message.belongsTo(User, {foreignKey: "senderId"});
 
-User.hasMany(ReadStatus, {foreignKey: "senderId"});
-ReadStatus.belongsTo(User, {foreignKey: "receiverId"});
-
 Conversation.hasMany(Message);
 Message.belongsTo(Conversation);
 
