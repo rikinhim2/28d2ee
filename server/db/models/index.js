@@ -2,7 +2,6 @@ const Conversation = require("./conversation");
 const User = require("./user");
 const Message = require("./message");
 const ReadStatus = require("./readstatus");
-const MessageType = require("./messagetype");
 const JoinGroupHistory = require("./joingrouphistory.js");
 
 // associations
@@ -31,14 +30,10 @@ ReadStatus.belongsTo(Conversation);
 Message.hasMany(ReadStatus);
 ReadStatus.belongsTo(Message);
 
-MessageType.hasOne(Message);
-Message.belongsTo(MessageType);
-
 module.exports = {
   User,
   Conversation,
   Message,
   ReadStatus,
-  MessageType,
   JoinGroupHistory,
 };
