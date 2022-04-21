@@ -1,10 +1,12 @@
 const router = require("express").Router();
-const { User, Conversation, Message } = require("../../db/models");
+const { User, Conversation, Message, ReadStatus } = require("../../db/models");
 const { Op } = require("sequelize");
 const onlineUsers = require("../../onlineUsers");
 
 // get all conversations for a user, include latest message text for preview, and all messages
 // include other user model so we have info on username/profile pic (don't include current user info)
+// include unread message number for each conversation
+// include other users last read messsage id
 router.get("/", async (req, res, next) => {
   try {
     if (!req.user) {
@@ -51,6 +53,16 @@ router.get("/", async (req, res, next) => {
       const convo = conversations[i];
       const convoJSON = convo.toJSON();
 
+      // set a property "unreadMessagesCount" for frontend to show the unread message number
+      const { count } = await ReadStatus.findAndCountAll({
+        where: {
+          conversationId: convo.id,
+          messageRead: false,
+          receiverId: userId,
+        },
+      });
+      convoJSON.unreadMessageCount = count;
+
       // set a property "otherUser" so that frontend will have easier access
       if (convoJSON.user1) {
         convoJSON.otherUser = convoJSON.user1;
@@ -59,6 +71,17 @@ router.get("/", async (req, res, next) => {
         convoJSON.otherUser = convoJSON.user2;
         delete convoJSON.user2;
       }
+
+      const { messageId } = await ReadStatus.findOne({
+        where: {
+          conversationId: convo.id,
+          messageRead: true,
+          receiverId: convoJSON.otherUser.id,
+        },
+        attributes: ["messageId"],
+        order: [["createdAt", "DESC"]],
+      }) || {};
+      convoJSON.otherLastReadMessageId = messageId;
 
       // set property for online status of the other user
       if (onlineUsers.includes(convoJSON.otherUser.id)) {
