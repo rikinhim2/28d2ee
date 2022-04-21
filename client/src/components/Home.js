@@ -143,8 +143,6 @@ const Home = ({ user, logout }) => {
         };
         newConvo.latestMessageText = message.text;
 
-        // check if the conversation is active, if yes, 
-        // request server to set read status to true, keep the unreadMessageCount (0) unchanged
         if (sender.username === activeConversation) {
           axios.put('/api/readstatus', {conversationId: message.conversationId});
           // tell the other user to update my lastest read message
@@ -152,7 +150,6 @@ const Home = ({ user, logout }) => {
             emitUpdate(message.conversationId, sender.id);
           }
         } else {
-          // if not, add the unreadMessageCount +1
           newConvo.unreadMessageCount +=  1;
         }
         setConversations((prev) => [newConvo, ...prev]);
@@ -163,8 +160,6 @@ const Home = ({ user, logout }) => {
             convoCopy.messages = [...convo.messages, message];
             convoCopy.latestMessageText = message.text;
 
-            // check if the conversation is active, if yes, 
-            // request server to set read status to true, keep the unreadMessageCount (0) unchanged
             if (convoCopy.otherUser.username === activeConversation) {
               axios.put('/api/readstatus', {conversationId: convoCopy.id});
               // tell the other user to update my lastest read message
@@ -172,7 +167,6 @@ const Home = ({ user, logout }) => {
                 emitUpdate(convoCopy.id, convoCopy.otherUser.id);
               }
             } else {
-              // if not, add the unreadMessageCount +1
               convoCopy.unreadMessageCount += 1;
             }
             return convoCopy;
