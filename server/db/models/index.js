@@ -9,9 +9,6 @@ const JoinGroupHistory = require("./joingrouphistory.js");
 User.belongsToMany(Conversation, {through: "Conversation_Host"});
 Conversation.belongsToMany(User, {through: "Conversation_Host"});
 
-User.hasMany(JoinGroupHistory);
-JoinGroupHistory.belongsTo(User);
-
 User.hasMany(Message, {foreignKey: "senderId"});
 Message.belongsTo(User, {foreignKey: "senderId"});
 
