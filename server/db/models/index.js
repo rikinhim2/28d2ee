@@ -6,8 +6,8 @@ const JoinGroupHistory = require("./joingrouphistory.js");
 
 // associations
 
-User.hasMany(Conversation, {foreignKey: 'hostId'});
-Conversation.belongsTo(User, {foreignKey: 'hostId'});
+User.belongsToMany(Conversation, {through: "Conversation_Host"});
+Conversation.belongsToMany(User, {through: "Conversation_Host"});
 
 User.hasMany(JoinGroupHistory);
 JoinGroupHistory.belongsTo(User);
