@@ -21,9 +21,6 @@ Message.belongsTo(Conversation);
 Conversation.hasMany(JoinGroupHistory);
 JoinGroupHistory.belongsTo(Conversation);
 
-Conversation.hasMany(ReadStatus);
-ReadStatus.belongsTo(Conversation);
-
 module.exports = {
   User,
   Conversation,
